@@ -1,0 +1,62 @@
+---
+globs: **/*.tsx, **/hooks/**/*.ts, **/store/**/*.ts, **/api/**/*.ts, **/queries/**/*.ts
+alwaysApply: false
+---
+
+# React — State and Data
+
+## Choosing where state lives
+
+Walk this ladder top to bottom. Stop at the first one that works.
+
+| Kind of state | Where it belongs |
+|---|---|
+| Derived from props or other state | **Compute during render.** Not state at all. |
+| One component's own UI concern | `useState` in that component |
+| Several related fields that change together | `useReducer` |
+| Shared by a subtree, changes rarely | Context |
+| Server data | A query library (TanStack Query or equivalent) |
+| Genuinely global client state | A store (Zustand, Redux Toolkit) — last resort |
+
+**Server state is not client state.** Cache, staleness, refetch, and invalidation are a solved
+problem — do not hand-roll them into a `useEffect` and a `useState`.
+
+## The most common React bug
+
+Storing something in state that could have been computed:
+
+```tsx
+// wrong — two sources of truth that will drift
+const [items, setItems] = useState(props.items);
+const [count, setCount] = useState(0);
+useEffect(() => setCount(items.length), [items]);
+
+// right — one source of truth
+const count = items.length;
+```
+
+## Async
+
+- Every async call handles **loading, error, and empty** — not just success. An unhandled empty
+  state is a blank screen the user cannot explain.
+- Model it as a discriminated union, not three booleans. Three booleans permit
+  `loading && error && data`, which is nonsense the type system should have refused.
+- Abort in-flight requests on unmount (`AbortController`) so a resolved promise cannot set state
+  on a gone component.
+- Never `await` inside a loop when the calls are independent — `Promise.all`.
+
+## Forms
+
+- Controlled inputs by default. Uncontrolled only with a deliberate reason.
+- Validate on blur and on submit, not on every keystroke. Keystroke validation shouts at people
+  who are still typing.
+- Disable submit while submitting. Double-submit is a real bug, not a hypothetical.
+
+## Performance — in this order
+
+1. Fix the actual re-render cause (state too high in the tree, an object literal in props).
+2. Split the component so less re-renders.
+3. *Then* `memo` / `useMemo` / `useCallback`.
+
+Memoizing first hides the structural problem and adds its own cost. Measure with the Profiler
+before optimizing; a guess about performance is still a guess.

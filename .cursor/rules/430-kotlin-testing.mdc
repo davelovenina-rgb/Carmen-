@@ -1,0 +1,72 @@
+---
+globs: **/test/**/*.kt, **/androidTest/**/*.kt, **/commonTest/**/*.kt, **/*Test.kt, **/*Tests.kt
+alwaysApply: false
+---
+
+# Kotlin — Testing
+
+Stack: **JUnit 5** · **Turbine** (Flow) · **AssertK** (assertions) · **kotlinx-coroutines-test** ·
+**Compose UI Test** for UI.
+
+## Naming
+
+Backtick names that state the behavior, not the method:
+
+```kotlin
+@Test
+fun `emits error state when the repository returns a network failure`() = runTest { }
+```
+
+Not `testLoadProfile()`. A failing test should name the broken behavior in the report, before
+anyone opens the file.
+
+## ViewModel tests
+
+```kotlin
+@Test
+fun `emits loading then content when the profile loads`() = runTest {
+    val viewModel = ProfileViewModel(FakeProfileRepository(profile = sampleProfile))
+
+    viewModel.state.test {
+        assertThat(awaitItem().isLoading).isTrue()
+        val loaded = awaitItem()
+        assertThat(loaded.isLoading).isFalse()
+        assertThat(loaded.profile).isEqualTo(sampleProfile)
+        cancelAndIgnoreRemainingEvents()
+    }
+}
+```
+
+- `runTest` + an injected `UnconfinedTestDispatcher` for deterministic ordering.
+- Turbine for every `Flow` assertion. Never `first()` and hope.
+- **Fakes, not mocks.** A hand-written `FakeProfileRepository` implementing the domain interface
+  is more readable, refactors cleanly, and does not encode call order as a requirement. Reach for
+  a mocking framework only for something genuinely awkward to fake.
+- Every test constructs its own subject. No shared mutable state between tests.
+
+## Arrange / Act / Assert
+
+Three visually separate blocks, in that order. If the arrange block is longer than the other two
+combined, the class under test has too many dependencies — that is a design finding.
+
+## What to test
+
+**Do:** ViewModel state transitions, every branch of `onAction`, error and empty paths, mappers
+both directions, use-case business rules, and every bug you fix (failing test first).
+
+**Don't:** framework internals, getters and setters, private functions through reflection, or a
+composable's exact layout tree.
+
+## Compose UI tests
+
+- Assert on semantics — `onNodeWithText`, `onNodeWithContentDescription`, `onNodeWithTag` — never
+  on pixels.
+- Test the `Screen` composable directly with a hand-built state. It is pure, so no ViewModel and
+  no DI graph are needed.
+- Robot pattern for anything more than a couple of interactions; it keeps the test readable when
+  the UI moves.
+
+## Coverage
+
+Coverage percentage is a diagnostic, not a target. A suite at 90% that never exercises an error
+path is worse than one at 60% that does — because it reports confidence it has not earned.

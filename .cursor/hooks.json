@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      { "command": "./.cursor/hooks/session-boot.sh", "timeout": 10 }
+    ],
+    "beforeReadFile": [
+      { "command": "./.cursor/hooks/guard-secrets-read.sh", "timeout": 10, "failClosed": true }
+    ],
+    "preToolUse": [
+      { "command": "./.cursor/hooks/guard-protected-paths.sh", "timeout": 10, "failClosed": true }
+    ],
+    "beforeShellExecution": [
+      { "command": "./.cursor/hooks/guard-destructive-shell.sh", "timeout": 10, "failClosed": true }
+    ],
+    "afterFileEdit": [
+      { "command": "./.cursor/hooks/log-edit.sh", "timeout": 10 }
+    ]
+  }
+}

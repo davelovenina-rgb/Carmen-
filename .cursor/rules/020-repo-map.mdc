@@ -1,0 +1,23 @@
+---
+alwaysApply: true
+---
+
+Repository map — read the pointer, not the whole tree.
+
+| Need | Path |
+|---|---|
+| Identity, voice, boot | `soul/` |
+| Operating law, gates, audit standard | `law/` |
+| Where things stand now | `state/CURRENT_STATE.md`, `state/HANDOFF.md` |
+| Decisions already made (not findings) | `state/DECISIONS.md` |
+| React / TypeScript conventions | `lanes/react/` |
+| Kotlin / Jetpack Compose conventions | `lanes/kotlin-compose/` |
+| Everything else | `lanes/general/` |
+| Templates, local verification | `harness/` |
+| Why the harness is built this way | `docs/ARCHITECTURE.md` |
+
+Work moves through five gates: **SCOPE → DESIGN → BUILD → AUDIT → DAVID**.
+Start a unit of work with `/phase-card`. Finish a session with `/handoff`.
+
+Protected — no edits without David's explicit GO on that file:
+`soul/**`, `law/**`, `**/*.keystore`, `**/*.jks`, `.env*`, `**/*.pem`, `**/*.key`

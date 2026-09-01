@@ -1,0 +1,49 @@
+---
+description: How to verify a claim before stating it as fact — source checks, narrow verification, and what counts as evidence. Load before reporting build status, file state, or the result of a change.
+alwaysApply: false
+---
+
+# Verification
+
+**Verify from source or say "I don't know."** A guess stated confidently is the most expensive
+thing produced here. It has cost real money and real regressions.
+
+## What must be verified before being stated
+
+- Whether a file exists, and what is in it → open it
+- Whether a function is called, and from where → search for it
+- Whether a change built → run the build
+- Whether a test passes → run the test
+- Whether a phase is done → read `state/CURRENT_STATE.md`
+- File counts, line counts, "already handled" → measure it
+
+Never any of these from memory. Not once.
+
+## Narrow verification (C-7)
+
+Verify **the specific fact in question**. Do not re-crawl the whole repository every time
+something small needs confirming. Process must never replace the task.
+
+## Evidence
+
+A claim is backed by a command and its output, or a file path and line number. "I checked" is not
+evidence. Paste the thing you looked at.
+
+```bash
+git status --porcelain          # working tree truth
+git diff --stat                 # what actually changed
+rg -n "symbolName"              # where a symbol is used
+./harness/verify.sh             # repository sanity
+```
+
+## The three honest answers
+
+1. **"Yes — here is the evidence."** with the path, the line, or the output.
+2. **"No — here is what I found instead."**
+3. **"I don't know. Let me check."** ← always available, always acceptable.
+
+## Post-write verification
+
+After writing a file, confirm it landed: correct path, expected size, content as intended. After
+pushing to GitHub, confirm the blob — path, sha, size. Writes fail quietly more often than people
+expect.

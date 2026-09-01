@@ -1,0 +1,59 @@
+---
+globs: **/*.tsx, **/*.jsx, **/components/**/*.ts, **/hooks/**/*.ts
+alwaysApply: false
+---
+
+# React — Core
+
+Full conventions: @lanes/react/CONVENTIONS.md · Architecture: @lanes/react/ARCHITECTURE.md
+
+## Components
+
+- **Function components only.** No class components in new code.
+- **Named exports**, not default exports. Default exports break rename-refactors and make
+  auto-import guess.
+- One component per file. The filename matches the component: `UserCard.tsx` exports `UserCard`.
+- **Keep components under ~200 lines.** Past that, extract a subcomponent into the same directory.
+- Props are an explicit `type` or `interface`, never `any`, never inline for anything non-trivial.
+- **Composition over prop drilling.** Pass `children` or a render prop before threading data
+  through three layers.
+
+## Presentational vs container
+
+A component either renders or it orchestrates — not both. Data fetching, mutations, and business
+logic live in hooks; the component receives the result and renders it. This is what makes a
+component testable without a network.
+
+## TypeScript
+
+- `strict` on. No `any` — use `unknown` and narrow it.
+- No non-null assertion (`!`) to silence the compiler. If it can be null, handle null.
+- Discriminated unions for state that has modes: `{ status: 'loading' } | { status: 'error', error: Error } | { status: 'ready', data: T }`.
+  This makes the impossible state unrepresentable, which is the whole point.
+- `type` for unions and utilities, `interface` for object shapes that may be extended. Be
+  consistent inside a file.
+
+## Hooks
+
+- Rules of Hooks are absolute: top level only, never in a condition, loop, or callback.
+- `useEffect` is for **synchronizing with something outside React** — not for deriving state.
+  Derived values are computed during render.
+- Every effect declares its full dependency array. Do not silence the lint rule; fix the
+  dependency, or the effect is in the wrong place.
+- Every effect that subscribes, sets a timer, or opens anything returns a cleanup function.
+- Custom hooks start with `use` and live in `hooks/`. A hook used by one component can live
+  beside it.
+
+## Files and structure
+
+```
+src/features/<feature>/
+  components/   # UI for this feature
+  hooks/        # feature logic
+  api/          # data access
+  types.ts
+  index.ts      # the feature's public surface
+```
+
+Import across features only through `index.ts`. Reaching into another feature's internals is the
+thing this structure exists to prevent.

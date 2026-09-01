@@ -1,0 +1,52 @@
+---
+description: Language-agnostic engineering standards — naming, error handling, boundaries, dependencies, and what makes a change safe. Load for any code work not covered by a language-specific rule.
+alwaysApply: false
+---
+
+# General Engineering Standards
+
+Applies to every language in this repository. Lane detail: @lanes/general/CONVENTIONS.md
+
+## Change safety
+
+- **Touch only what the task requires.** A drive-by fix in an unrelated file is scope creep, even
+  when it is correct. Note it, finish the task, raise it separately.
+- **Read the call path before changing a link in it.** If a signature changes, find every call
+  site. Not most of them.
+- **Prefer additive over destructive.** A new function beside the old one, then a switchover, beats
+  editing a function twelve things depend on.
+- **Leave the tree buildable.** Every commit compiles and every test runs.
+
+## Errors
+
+- Never swallow an error silently. An empty catch — `catch {}`, `catch (_: Exception) {}`,
+  `except: pass` — is a red flag in every language and a finding at audit.
+- Handle errors at the boundary that can actually do something about them.
+- Error messages say what failed, what was expected, and what to try. No bare "Error".
+- Fail loudly in development, degrade gracefully in production.
+
+## Naming
+
+- Names say what a thing **is** or **does**, not how it was implemented.
+- No abbreviations except genuinely universal ones (`id`, `url`, `http`).
+- Booleans read as assertions: `isLoading`, `hasAccess`, `canRetry`.
+- Consistency inside a codebase beats correctness in the abstract — match what is already there.
+
+## Boundaries
+
+- Validate at the edge — user input, network responses, file contents, environment variables.
+- Once inside a boundary, trust the type. Do not re-validate the same thing at five layers.
+- No secrets in source, ever. Read from environment; commit an `.example` file, never the real one.
+- Log what happened. Never log a token, key, password, or full request body containing either.
+
+## Dependencies
+
+- Prefer the standard library. A dependency is a permanent maintenance obligation.
+- Before adding one: is it maintained, what does it pull in, what happens when it is abandoned?
+- Adding a dependency is a **G2 design decision**, not a build detail. It gets named and approved.
+
+## Comments
+
+- Comment **why**, never what. The code says what.
+- A comment explaining a workaround must name what it works around.
+- Delete commented-out code. Git remembers it; the file should not.

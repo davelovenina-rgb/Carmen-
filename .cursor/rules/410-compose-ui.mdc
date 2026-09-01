@@ -1,0 +1,97 @@
+---
+globs: **/*Screen.kt, **/*Composable*.kt, **/ui/**/*.kt, **/presentation/**/*.kt, **/components/**/*.kt, **/designsystem/**/*.kt
+alwaysApply: false
+---
+
+# Jetpack Compose — UI
+
+Full conventions: @lanes/kotlin-compose/CONVENTIONS.md
+
+## The core principle
+
+**The UI is dumb.** Composables render state and forward actions. Nothing else. Zero business
+logic, zero data transformation, minimal side effects. All state lives in the ViewModel.
+
+## The Root / Screen split
+
+Every screen is two composables:
+
+```kotlin
+@Composable
+fun ProfileRoot(viewModel: ProfileViewModel = koinViewModel()) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    ProfileScreen(state = state, onAction = viewModel::onAction)
+}
+
+@Composable
+fun ProfileScreen(state: ProfileState, onAction: (ProfileAction) -> Unit) { /* pure UI */ }
+```
+
+`Root` is stateful and knows the ViewModel. `Screen` is pure, takes state and a single `onAction`
+lambda, and is fully previewable and testable. **Never call a ViewModel from inside `Screen`.**
+
+## State hoisting
+
+- A composable that owns state cannot be reused. Hoist to the lowest common ancestor that needs it.
+- `remember { }` for values that survive recomposition; `rememberSaveable { }` for values that must
+  survive configuration change and process death.
+- `derivedStateOf` when a value is computed from other state and changes **less often** than its
+  inputs. Using it everywhere costs more than it saves.
+
+## Side effects — pick the right one
+
+| Need | Use |
+|---|---|
+| Run on enter / on key change, suspend-capable | `LaunchedEffect(key)` |
+| Clean up when leaving composition | `DisposableEffect(key)` |
+| Read latest value inside a long-lived effect | `rememberUpdatedState` |
+| Non-suspend work after every successful composition | `SideEffect` |
+| Launch from a callback (a click) | `rememberCoroutineScope()` |
+
+`LaunchedEffect(Unit)` runs once — verify that is genuinely what you want, and that the effect is
+not silently stale when a parameter changes.
+
+**Never** mutate state, perform I/O, or read a changing value directly in the composition body.
+Composition can run any number of times, in any order, on any thread, and be thrown away.
+
+## Recomposition and stability
+
+- Parameters should be stable: primitives, `String`, immutable `data class` of stable types,
+  lambdas that are stable references.
+- `List<T>` is **unstable** to the compiler. Use `ImmutableList` (kotlinx.collections.immutable)
+  or `@Immutable` on the wrapper.
+- Never allocate in the composition body: no `mutableListOf()`, no unremembered object literal —
+  it makes a new instance every recomposition and defeats skipping.
+- Defer reads to the narrowest scope. Passing `() -> Float` instead of `Float` keeps a frequently
+  changing value from recomposing the whole subtree.
+
+## Modifier
+
+- **Every** public composable takes `modifier: Modifier = Modifier` as its **first optional
+  parameter**, and applies it to its outermost layout node.
+- Order matters and is not commutative: `padding().background()` differs from
+  `background().padding()`. Read modifier chains carefully at audit.
+- Never pass a modifier down to more than one child.
+
+## Previews
+
+Every reusable composable has a `@Preview`. Previews are documentation that cannot go stale
+silently — they stop compiling.
+
+```kotlin
+@Preview(name = "Light")
+@Preview(name = "Dark", uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun ProfileScreenPreview() {
+    AppTheme { ProfileScreen(state = ProfileState(/* sample */), onAction = {}) }
+}
+```
+
+Preview the **loading, error, and empty** states too — not just the happy path.
+
+## Accessibility
+
+- `contentDescription` on every meaningful image and icon button; `null` for purely decorative.
+- Touch targets at least **48 dp**.
+- Use `Modifier.semantics { }` to merge or clarify; test with TalkBack, not by reading the code.
+- Never rely on colour alone to carry meaning.

@@ -1,0 +1,47 @@
+---
+globs: **/*.tsx, **/*.jsx, **/*.css, **/*.scss
+alwaysApply: false
+---
+
+# React — Accessibility and Delivery
+
+## Accessibility is correctness
+
+A control a keyboard cannot reach is broken, exactly like a function that throws. It is not a
+polish item and it does not wait for a later phase.
+
+- **Semantic elements first.** `<button>`, `<nav>`, `<main>`, `<label>`. ARIA is the patch for
+  when no element fits — not the first move.
+- **Never `<div onClick>`.** It is not focusable, not keyboard-operable, and invisible to
+  assistive tech. Use a `<button>`.
+- Every input has a real `<label>` associated with it. Placeholder is not a label — it disappears
+  the moment someone types.
+- Every image has `alt`. Decorative images get `alt=""`, not a missing attribute.
+- Focus is visible. Never `outline: none` without an equal-or-better replacement.
+- After a route change or a modal opens, move focus deliberately and trap it inside the modal.
+- Contrast at least **4.5:1** for body text, **3:1** for large text and UI boundaries.
+- Interactive targets at least **44×44 px** on touch.
+- Respect `prefers-reduced-motion` — gate every non-essential animation behind it.
+
+## Forms
+
+- Errors are announced, not only colored. Colour alone excludes colour-blind users entirely.
+- Associate the error with its field (`aria-describedby`) so a screen reader reads them together.
+- Never disable a submit button as the only feedback for an invalid form — say *what* is wrong.
+
+## Delivery
+
+- Lazy-load routes and anything heavy and below the fold (`React.lazy` + `Suspense`).
+- Every list item has a **stable** `key`. Array index is a bug waiting for the list to reorder.
+- Images: explicit width and height to stop layout shift; modern formats; `loading="lazy"`
+  below the fold.
+- Watch the bundle. A new dependency that adds 200 KB to the initial load is a G2 decision, not a
+  build detail.
+
+## Before saying a UI is done
+
+- [ ] Reachable and operable by keyboard alone, in a sensible tab order
+- [ ] Focus visible at every stop
+- [ ] Loading, error, and empty states all render
+- [ ] Contrast checked
+- [ ] Works at 320 px wide and at 200% zoom

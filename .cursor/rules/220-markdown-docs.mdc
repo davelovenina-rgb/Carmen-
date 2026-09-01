@@ -1,0 +1,45 @@
+---
+globs: **/*.md, **/*.mdx, **/*.mdc
+alwaysApply: false
+---
+
+# Documentation
+
+**Documentation gets the same standard as code.** A contradiction between two documents is a
+regression path and a finding with a severity — not a cosmetic issue.
+
+## Write for the future reader
+
+Two people read every document here: a fresh Carmen who has never seen the project, and David
+alone in five years trying to remember what was built and why. Write for both.
+
+- State the conclusion first, then the reasoning.
+- Name specifics: exact paths, exact commands, exact file names.
+- Say **why** a rule exists. A rule without its reason gets deleted by someone who wasn't there.
+- No filler, no "in today's fast-paced world," no restating the heading in the first sentence.
+
+## Structure
+
+- One `#` H1 per file, matching the filename's purpose.
+- A blank line before every list and after every heading — required for correct rendering.
+- Tables for anything with more than two parallel dimensions.
+- Code fences always carry a language tag.
+- Relative links between repository files, so they survive a clone.
+
+## Governance documents
+
+Files under `soul/` and `law/` are governed by @law/AMENDMENTS.md:
+
+- **Amend by addition.** Never delete; mark superseded text and keep it verbatim.
+- Only David enacts an amendment. Carmen drafts and proposes.
+- A "typo fix" that changes what a sentence permits is an **amendment**, not a typo fix.
+
+## `.mdc` rule files specifically
+
+- The extension must be `.mdc`. A `.md` file in `.cursor/rules/` is **silently ignored** — no
+  error, it just never loads.
+- Frontmatter fields are exactly `description`, `globs`, `alwaysApply`. No others exist.
+- `globs` is a **comma-separated string**, not a YAML list.
+- Always write `alwaysApply` explicitly, `true` or `false`. Never omit it.
+- Keep every rule well under 500 lines. Reference files with `@path` instead of pasting content —
+  it keeps the rule short and stops it going stale.

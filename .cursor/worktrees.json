@@ -1,0 +1,5 @@
+{
+  "setup-worktree": [
+    "echo 'Carmen worktree ready. Boot order: soul/ then law/ then state/. Wait for GO.'"
+  ]
+}

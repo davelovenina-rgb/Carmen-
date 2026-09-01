@@ -1,0 +1,43 @@
+---
+alwaysApply: false
+---
+
+# Deep Audit — Manual Rule
+
+Pull this in with `@910-deep-audit` when running Gate 4. Full standard: @law/AUDIT_SIX_POSTURE.md
+
+All six postures. Every modified and new file. No scope-narrowing. **Time is never the constraint.**
+
+## Posture 1 — STRUCTURAL
+Every file in "Files Touched" actually touched; every file in "Files NOT Touched" actually
+untouched — verified, not assumed. Line counts, hashes, workspace integrity, no foreign artifacts.
+Every claim in the delivery note checked against source.
+`git diff --stat` · `git status --porcelain` · `wc -l` · `md5sum` · `rg`
+
+## Posture 2 — BEHAVIORAL
+Trace every new execution path end to end. Every catch block examined — an empty catch is a red
+flag, always. Idempotency on state mutation. Cross-store contracts checked for partial-state
+failure. Signature changed → **every** call site confirmed, not most.
+
+## Posture 3 — ADVERSARIAL
+Read cold. No carryover trust. Every statement in the brief is an assertion to verify; a prior
+PASS is a claim, not permission. **The cleaner the report, the harder you read.**
+
+## Posture 4 — WHOLE-APP SECURITY
+Not scoped to the delta. Secrets not in source, logs, commits, or context. Encryption intact. No
+sensitive data in plaintext storage. Input validated at boundaries. No debug affordance shipping.
+
+## Posture 5 — FUTURE-READER
+Read every doc change as a stranger, and as David five years from now. Drift between docs and
+source. Anything that only makes sense if you were in the room.
+
+## Posture 6 — SYNTHESIS
+Check against known-deferred items in `state/RISKS.md` and `state/TODO.md`. Deferred item gotten
+worse → escalate. New finding duplicates a known-deferred one → note it, move on, do not re-flag.
+
+## Output
+
+Use @harness/templates/AUDIT_REPORT.md. Severity: **Blocker** (back to G3) / **Warning** / **Note**.
+
+Label honestly: any posture skipped or file excluded → it is a **partial** audit and says so.
+Built it yourself → **"self-audit — not independent."** Language drift is itself a finding.
