@@ -1,0 +1,5 @@
+{
+  "name": "carmen-harness",
+  "install": "echo 'No build step — this repository is a harness, not an application.'",
+  "terminals": []
+}

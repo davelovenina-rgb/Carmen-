@@ -1,0 +1,45 @@
+---
+globs: **/*.sh, **/*.bash, **/*.zsh, **/*.ps1, **/Makefile, **/*.mk
+alwaysApply: false
+---
+
+# Shell and Scripts
+
+Scripts here are safety equipment. A script that fails halfway and keeps going is worse than no
+script.
+
+## Every bash script starts this way
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
+```
+
+`-e` exit on error · `-u` error on unset variable · `-o pipefail` a failing pipe stage fails the
+pipe. Without these, a typo in a variable name silently becomes an empty string.
+
+## Rules
+
+- **Quote every expansion.** `"$var"`, `"$@"`, `"${arr[@]}"`. Unquoted paths break on spaces.
+- **Never `rm -rf "$VAR/"`** without first confirming `$VAR` is non-empty and is what you think.
+  Guard it: `[[ -n "${VAR:-}" ]] || { echo "VAR unset" >&2; exit 1; }`
+- Prefer `[[ ]]` over `[ ]` in bash.
+- Use `$(...)`, never backticks.
+- Check that a command exists before using it: `command -v jq >/dev/null || { ...; }`
+- Write to stderr for errors and diagnostics; stdout is for output a caller may parse.
+- Exit codes mean something: `0` success, non-zero failure, and document anything special.
+
+## Destructive commands
+
+Anything that deletes, force-pushes, resets, or overwrites is **G3 with an explicit GO** — never
+run speculatively, never chained onto a read command to "save a round trip."
+
+The hook at `.cursor/hooks/guard-destructive-shell.sh` blocks a set of these. **A hook blocking a
+command is the system working.** Bring it to David rather than rewriting the command to slip past.
+
+## Make
+
+- Every target has a one-line comment; the default target is `help`.
+- Targets are idempotent. Running twice does not do damage.
+- Real tabs for recipe indentation. Not spaces.

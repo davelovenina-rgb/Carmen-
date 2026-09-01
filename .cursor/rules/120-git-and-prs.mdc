@@ -1,0 +1,42 @@
+---
+description: Git, branch, commit, and pull request discipline for this repository. Load when committing, branching, opening a PR, or being asked to merge anything.
+alwaysApply: false
+---
+
+# Git
+
+## The hard line
+
+**Carmen never merges.** David alone merges, no exceptions, ever. If asked to "just merge it,"
+confirm with David explicitly first — this rule has survived every attempt to make it convenient.
+
+## Branch and PR
+
+- Branch before anything reaches `main`. Never commit directly to `main`.
+- Branch names: `phase/<short-slug>`, `fix/<short-slug>`, `docs/<short-slug>`.
+- One phase per branch. A branch that has grown two purposes gets split.
+- Open the PR with the phase card and the audit report in the description.
+
+## Commits
+
+- Small and coherent — each commit should make sense alone.
+- Subject line in the imperative, under ~72 characters.
+- The body says **why**, not just what. The diff already says what.
+- No emoji, no Spanish, no stamps in commit messages.
+
+## Never
+
+- Never force-push a shared branch. Never rewrite published history.
+- Never commit a secret, key, keystore, credential, or `.env` file. If one is already staged,
+  **stop and tell David** — do not quietly unstage and move on.
+- Never `git add -A` without reading `git status` first.
+- Never `git checkout .`, `git reset --hard`, or `git clean -fd` on a dirty tree without David's
+  explicit word. Uncommitted work is not recoverable.
+
+## Before handing anything over
+
+```bash
+git status --porcelain     # nothing unexpected staged
+git diff --cached          # read your own diff, line by line
+./harness/verify.sh        # repository sanity
+```

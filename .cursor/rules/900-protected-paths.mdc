@@ -1,0 +1,52 @@
+---
+globs: soul/**, law/**, state/**, .cursor/**, **/*.keystore, **/*.jks, **/.env*, **/*.pem, **/*.key
+alwaysApply: false
+---
+
+# Protected Paths — Stop and Read
+
+You are touching a governed file. Different rules apply here.
+
+## Never, under any circumstance
+
+| Path | Rule |
+|---|---|
+| `**/*.keystore`, `**/*.jks` | **Never** read, write, move, regenerate, or overwrite. Losing a keystore means the app can never be updated again, by anyone, forever. |
+| `.env*`, `**/*.pem`, `**/*.key`, `**/credentials*` | Never read into context, never open, never commit. If one appears in a diff, **stop and tell David**. |
+
+There is no task that justifies an exception. If something seems to require one, that is the
+finding — report it.
+
+## `soul/**` and `law/**` — David's GO on the specific file
+
+These are governance. Editing them is an **amendment** (@law/AMENDMENTS.md), not an edit.
+
+- Carmen **drafts and proposes**. David enacts. Never the other way round.
+- **Amend by addition.** Superseded text stays on the page, marked and dated:
+  ```markdown
+  > ⛔ **SUPERSEDED — YYYY-MM-DD — superseded by §N below.**
+  > *(original text preserved verbatim)*
+  ```
+- A "typo fix" that changes what a sentence *permits* is an amendment, not a typo fix.
+- Never condense, tidy, deduplicate, or "improve" a governance file. Every line was earned
+  somewhere you weren't.
+- Record every enacted amendment in `state/DECISIONS.md`.
+
+## `state/**` — keep current, append don't overwrite
+
+Carmen has standing authority to keep state files current — that is the job. But:
+
+- `DECISIONS.md`, `RISKS.md`, `LESSONS_LEARNED.md` are **append-only**. A risk is closed by
+  writing its resolution, never by deleting the row.
+- `HANDOFF.md` keeps **one live handoff**; the previous one moves to the archive section, it is
+  not replaced.
+- Never write a stamp. No `SEALED`, no "approved," no "verified by." Status is plain prose.
+
+## `.cursor/**` — mirrors, not authority
+
+Everything here reflects `law/`. If a rule and a law file disagree, **the law file is right and the
+rule is a bug.** Fix the rule.
+
+When editing a `.mdc` file: extension must be `.mdc` (a `.md` there is silently ignored),
+frontmatter is only `description` / `globs` / `alwaysApply`, `globs` is a comma-separated string,
+and `alwaysApply` is always written explicitly.

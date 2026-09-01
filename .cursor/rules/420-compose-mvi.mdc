@@ -1,0 +1,80 @@
+---
+globs: **/*ViewModel.kt, **/*State.kt, **/*Action.kt, **/*Event.kt, **/presentation/**/*.kt, **/domain/**/*.kt, **/data/**/*.kt, **/*Repository*.kt, **/*DataSource*.kt
+alwaysApply: false
+---
+
+# Kotlin — MVI, Domain, and Data
+
+Architecture: @lanes/kotlin-compose/ARCHITECTURE.md
+
+## Every screen has four pieces
+
+| Piece | Shape | Purpose |
+|---|---|---|
+| **State** | one `data class` | everything the UI renders |
+| **Action** | `sealed interface` | everything the user can do |
+| **Event** | `sealed interface` | one-time effects (navigate, toast, snackbar) |
+| **ViewModel** | holds `StateFlow<State>`, exposes `onAction`, emits `Event` | the orchestrator |
+
+**State vs Event is the distinction that matters.** State is re-rendered on every recomposition —
+so a navigation instruction in state fires again on rotation. One-time effects go through a
+`Channel` consumed once, never through `StateFlow`.
+
+```kotlin
+class ProfileViewModel(...) : ViewModel() {
+    private val _state = MutableStateFlow(ProfileState())
+    val state: StateFlow<ProfileState> = _state.asStateFlow()
+
+    private val _events = Channel<ProfileEvent>()
+    val events = _events.receiveAsFlow()
+
+    fun onAction(action: ProfileAction) { /* exhaustive when */ }
+}
+```
+
+- `onAction` uses an **exhaustive `when`** with no `else` branch — a new action then becomes a
+  compile error instead of a silently ignored tap.
+- State updates go through `_state.update { it.copy(...) }`, never `_state.value = ...` from more
+  than one place — `update` is atomic.
+- The ViewModel knows nothing about Android UI. No `Context`, no `View`, no `Composable`.
+- User-facing strings are `UiText` (a resource id or a raw string), resolved in the composable.
+  A ViewModel that formats an English sentence has just broken localization.
+- `SavedStateHandle` for anything that must survive process death.
+
+## Layers
+
+```
+presentation  →  domain  ←  data
+```
+
+**Domain is innermost and depends on nothing** — no Android, no Ktor, no Room, no framework.
+That is what makes it testable in milliseconds and portable across platforms.
+
+- Domain holds models, repository **interfaces**, and use cases.
+- Data holds DTOs, entities, mappers, data sources, and repository **implementations**.
+- Presentation depends on domain only. It never sees a DTO or an entity.
+
+## Data layer
+
+- **Data source** = one transport concern (one HTTP client, one DAO). **Repository** = combines
+  sources, maps to domain, decides caching. Do not collapse them.
+- DTOs and entities never leave the data layer. Explicit mappers at the boundary — a domain model
+  carrying a `@SerialName` is a leaked abstraction that spreads.
+- Every network and disk call returns a typed `Result`, never a thrown exception, never a null
+  meaning "something went wrong."
+- Room and ObjectBox migrations are **destructive by accident, permanent by consequence**. Never
+  `fallbackToDestructiveMigration()` in anything a user runs. That is real people's data.
+
+## Dependency injection
+
+Koin. One module per feature layer, assembled in `:app` — never in a feature module.
+
+```kotlin
+val profileModule = module {
+    single<ProfileRepository> { ProfileRepositoryImpl(get(), get()) }
+    viewModelOf(::ProfileViewModel)
+}
+```
+
+- Constructor injection everywhere. No service locator lookups inside a class.
+- `koinViewModel()` in the `Root` composable only. Never in a `Screen`.

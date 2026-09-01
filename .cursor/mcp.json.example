@@ -1,0 +1,34 @@
+{
+  "_comment": [
+    "Copy to .cursor/mcp.json to activate. That filename is gitignored on purpose —",
+    "an MCP config is where a token ends up, and a token in git is a token that has leaked.",
+    "",
+    "Every secret is read from the environment with ${env:NAME}. Never paste a literal here.",
+    "There is no 'disabled' field in Cursor's schema — toggle servers in the Cursor UI.",
+    "Cursor asks for approval before an MCP tool runs; leave that on."
+  ],
+
+  "mcpServers": {
+    "github": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_TOKEN}"
+      }
+    },
+
+    "filesystem": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "${workspaceFolder}"]
+    },
+
+    "example-remote": {
+      "url": "https://example.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:EXAMPLE_API_KEY}"
+      }
+    }
+  }
+}

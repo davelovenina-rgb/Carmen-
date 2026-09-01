@@ -1,0 +1,60 @@
+---
+globs: **/*.test.ts, **/*.test.tsx, **/*.spec.ts, **/*.spec.tsx, **/__tests__/**, **/e2e/**/*.ts
+alwaysApply: false
+---
+
+# React — Testing
+
+Stack: **Vitest** + **React Testing Library** for units and integration, **Playwright** for E2E.
+
+## The principle
+
+> Test what the user does, not how the component does it.
+
+Query by role, label, and visible text. `getByRole('button', { name: /save/i })` survives a
+refactor; `container.querySelector('.btn-primary')` does not, and it never proved the button was
+reachable in the first place.
+
+## Priority of queries
+
+1. `getByRole` — matches how assistive tech sees the app
+2. `getByLabelText` — form fields
+3. `getByPlaceholderText`, `getByText`
+4. `getByTestId` — **last resort**, and it needs a reason
+
+## Structure
+
+```tsx
+it('shows an error when the email is already taken', async () => {
+  // arrange
+  server.use(emailTakenHandler);
+  render(<SignUpForm />);
+
+  // act
+  await user.type(screen.getByLabelText(/email/i), 'taken@example.com');
+  await user.click(screen.getByRole('button', { name: /sign up/i }));
+
+  // assert
+  expect(await screen.findByText(/already registered/i)).toBeVisible();
+});
+```
+
+- Test names say the behavior, not the function: *"shows an error when the email is already taken."*
+- One behavior per test. A test that needs "and" in its name is two tests.
+- `userEvent`, not `fireEvent` — it goes through the real event sequence.
+- `findBy*` for anything async. Never `waitFor` wrapped around a bare `getBy*`.
+
+## What to test
+
+**Do:** user-visible behavior, conditional rendering, error and empty states, form validation,
+accessibility of interactive elements, and every bug you fix (write the failing test first).
+
+**Don't:** implementation details, internal state, third-party library internals, or a snapshot of
+a whole page — a large snapshot fails on every change and gets approved without being read.
+
+## Mocking
+
+- Mock at the **network** boundary (MSW), not the module boundary. Mocking your own modules tests
+  the mock.
+- No mock in an E2E test. If it needs a mock, it is an integration test.
+- Every mock is reset between tests. A leaking mock produces a passing suite that proves nothing.

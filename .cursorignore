@@ -1,0 +1,47 @@
+# Keep these out of the agent's reach.
+#
+# Important: .cursorignore is NOT a security boundary. Cursor's own documentation states that
+# terminal and MCP tools can still reach ignored files. This is a second layer, not the first one.
+# The first layer is: secrets never enter this repository at all.
+#
+# No negation (!) patterns are used here — a known Cursor regression prevents ! from overriding
+# .gitignore exclusions while Instant Grep is enabled.
+
+# Secrets — never
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+*.jks
+id_rsa
+id_ed25519
+credentials.json
+secrets.json
+secrets.yaml
+secrets.yml
+**/local.properties
+
+# Cursor's own audit trail — noise in context, useful only when read deliberately
+.cursor/audit.log
+.cursor/mcp.json
+
+# Build output and dependencies
+node_modules/
+dist/
+build/
+out/
+.next/
+coverage/
+.gradle/
+*.apk
+*.aab
+*.iml
+
+# Editor and OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

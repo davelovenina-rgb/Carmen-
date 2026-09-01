@@ -1,0 +1,66 @@
+---
+globs: **/build.gradle.kts, **/settings.gradle.kts, **/libs.versions.toml, **/gradle.properties, **/build-logic/**/*.kts, **/proguard*.pro
+alwaysApply: false
+---
+
+# Gradle and Module Structure
+
+Detail: @lanes/kotlin-compose/ARCHITECTURE.md
+
+## Module layout
+
+Feature first, then layer inside the feature:
+
+```
+:app                          assembles everything, owns DI wiring and navigation
+:core:domain                  models, repository interfaces, Result — depends on nothing
+:core:data                    HTTP client, DB, shared data plumbing
+:core:presentation            design system, shared composables, UiText
+:feature:<name>:domain        that feature's use cases and contracts
+:feature:<name>:data          that feature's repository implementation
+:feature:<name>:presentation  that feature's ViewModels and composables
+```
+
+**Code lives in a feature module until a second feature needs it** — then, and only then, it moves
+to the matching `core` submodule. Moving it early creates a shared module nobody owns.
+
+## Dependency rules — enforced, not suggested
+
+- `domain` depends on **nothing**. No Android, no Ktor, no Room, no Compose.
+- `data` depends on `domain`. Never on `presentation`.
+- `presentation` depends on `domain`. Never on `data` — it talks to interfaces.
+- **A feature never depends on another feature.** Cross-feature communication goes through `:app`
+  (navigation callbacks) or through `:core`.
+- No circular dependencies. Gradle will tell you; do not work around it with a shared "util"
+  module, which is how a cycle gets laundered into a mess.
+
+## Version catalog
+
+All versions live in `gradle/libs.versions.toml`. Never a hardcoded version string in a
+`build.gradle.kts`.
+
+```toml
+[versions]
+kotlin = "2.1.0"
+[libraries]
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+[bundles]
+ktor = ["ktor-client-core", "ktor-client-content-negotiation"]
+```
+
+## Convention plugins
+
+Shared build config goes in `:build-logic` as convention plugins, applied by id. Copy-pasted build
+config across twelve modules is the same maintenance problem as copy-pasted code, and it drifts the
+same way.
+
+## Never
+
+- Never `fallbackToDestructiveMigration()` in a build a user runs. That deletes their data.
+- Never a signing config with a real credential in a tracked file. Read from environment or a
+  gitignored properties file.
+- **Never regenerate or overwrite a keystore.** Lose it and the app can never be updated again by
+  anyone, forever. Keystores are protected paths (`law/GOVERNANCE.md` §8).
+- Never disable a lint check globally to fix one call site. Suppress narrowly, with a comment
+  saying why.
+- Never leave `debuggable true` or a debug affordance in a release build type.

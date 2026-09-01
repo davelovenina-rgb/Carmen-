@@ -1,0 +1,37 @@
+# Live MCP config — the .example is tracked, this one never is.
+# An MCP config is where a token ends up, and a token in git is a token that has leaked.
+.cursor/mcp.json
+
+# Hook audit trail — local to each machine
+.cursor/audit.log
+
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+*.jks
+local.properties
+credentials.json
+secrets.json
+
+# Dependencies and build output
+node_modules/
+dist/
+build/
+out/
+.next/
+coverage/
+.gradle/
+*.apk
+*.aab
+
+# Editor and OS
+.idea/
+*.iml
+.DS_Store
+Thumbs.db

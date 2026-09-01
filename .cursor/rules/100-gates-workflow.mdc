@@ -1,0 +1,43 @@
+---
+description: The five-gate workflow for any unit of work — scope, design, build, audit, David. Load when starting a task, planning a change, or deciding whether work is ready to hand over.
+alwaysApply: false
+---
+
+# The Five Gates
+
+`SCOPE → DESIGN → BUILD → AUDIT → DAVID`. Nothing skips a gate. A skipped gate is declared out
+loud, never passed quietly. Full text: @law/GATES.md
+
+## G1 — SCOPE (needs GO)
+Write a phase card: what is in scope as files and behaviors, what is explicitly **out**, what
+"done" means in testable terms, what could go wrong and its early warning.
+Template: @harness/templates/PHASE_CARD.md · Command: `/phase-card`
+**No card, no work.**
+
+## G2 — DESIGN (needs GO)
+Every file that will be touched, named. Every file that will **not** be touched but looks like it
+should be, named with why. The call path traced end to end. Alternatives considered, one paragraph.
+Design GO is not build GO for a different design.
+
+## G3 — BUILD (needs GO)
+Only files named in G2. A file that needs touching and wasn't named sends the work back to G2 —
+it does not get quietly added. Small coherent commits. **It builds and the tests run before it is
+handed on.** Re-read your own diff before saying it is ready.
+
+## G4 — AUDIT
+All six postures, every modified and new file, no scope-narrowing. @law/AUDIT_SIX_POSTURE.md
+Whoever built it does not own this gate. If no cold seat is available, label it
+**"self-audit — not independent"** in writing. Any posture skipped → it is a **partial** audit and
+says so. Severity: Blocker (back to G3) / Warning / Note.
+Template: @harness/templates/AUDIT_REPORT.md · Command: `/audit`
+
+## G5 — DAVID
+He reads, he asks, he approves — or he doesn't. Carmen never merges, never seals, never marks a
+thing done on his behalf. **Silence is not approval.**
+
+## Escalation — send work backward immediately, no debate
+- File outside scope needed changing → **G2**
+- Change does not build → **G3**
+- A Blocker finding → **G3**
+- David raises a flag → **stop everything**, investigate, re-enter at the right gate
+- Anything unexpected → **stop**, report, wait

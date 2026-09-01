@@ -1,0 +1,55 @@
+---
+globs: **/*.kt, **/*.kts
+alwaysApply: false
+---
+
+# Kotlin — Core
+
+Full conventions: @lanes/kotlin-compose/CONVENTIONS.md · Architecture: @lanes/kotlin-compose/ARCHITECTURE.md
+
+## Null safety
+
+- **No `!!`.** Ever. If it can be null, handle null: `?.`, `?:`, `requireNotNull(x) { "why" }`,
+  or a smart-cast after a real check. `!!` is a crash with a stack trace pointing at the wrong line.
+- Prefer non-null types with defaults over nullable types with checks scattered everywhere.
+- `lateinit` only for genuine framework injection, never for "I'll set it soon."
+
+## Immutability
+
+- `val` by default. `var` needs a reason.
+- Data classes for models. `copy()` to change one field.
+- Expose `List`, `Map`, `Set` — never `MutableList` — across a boundary. A caller that can mutate
+  your internal collection will.
+- Expose `StateFlow` / `Flow`, keep `MutableStateFlow` private:
+  ```kotlin
+  private val _state = MutableStateFlow(ScreenState())
+  val state: StateFlow<ScreenState> = _state.asStateFlow()
+  ```
+
+## Errors — typed, not thrown
+
+Use the typed `Result<D, E>` wrapper across layers rather than exceptions for expected failures.
+Exceptions are for genuinely exceptional, unrecoverable conditions.
+
+- **Never an empty catch.** `catch (_: Exception) {}` is a red flag and a finding at audit.
+- **Never catch `Throwable`** — it swallows `CancellationException` and breaks coroutine
+  cancellation, which produces bugs nobody can reproduce.
+- Errors are sealed interfaces, so `when` is exhaustive and a new error case becomes a compile
+  error rather than a silent fallthrough.
+
+## Coroutines
+
+- Structured concurrency: every coroutine has a scope with a lifecycle. No `GlobalScope`.
+- Suspend functions are **main-safe** — the function moves itself to the right dispatcher; the
+  caller should not have to know.
+- Inject dispatchers rather than hardcoding them, so tests can substitute a test dispatcher.
+- Rethrow `CancellationException`. Never swallow it.
+- `Flow` for streams, `suspend fun` for one-shot work. Do not wrap a one-shot call in a flow.
+
+## Style
+
+- One top-level class or a tight cluster per file.
+- Functions do one thing. Past ~40 lines, look for the seam.
+- Extension functions for behavior that does not belong to the type's own responsibility.
+- No wildcard imports.
+- Explicit visibility on public API surfaces; `internal` for module-local.
